@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:daily_steps/achievement.dart';
 import 'package:daily_steps/dailySteps.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -6,7 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:achievement_view/achievement_view.dart';
+//Fimport 'package:achievement_view/achievement_view.dart';
 
 class StatsPage extends StatefulWidget {
   @override
@@ -21,6 +22,7 @@ class _StatsPageState extends State<StatsPage> {
   int coinCountKey = 9999999;
   int savedKeyValue = 999;
   int coin = 0;
+  int updatelastcoin = 0;
 
   final Color carbonBlack = Color(0xff1a1a1a);
 
@@ -78,7 +80,7 @@ class _StatsPageState extends State<StatsPage> {
                       ),
                     ),
                     Text(
-                      "Total Steps Walk",
+                      "Total Steps",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
@@ -94,13 +96,46 @@ class _StatsPageState extends State<StatsPage> {
         ),
       ),
       bottomNavigationBar: Container(
-        padding: EdgeInsets.only(left: 160.0),
         height: 105.0,
         child: Row(
           children: <Widget>[
             Container(
-              width: 250,
+              width: 225,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Align(
+                    child: RaisedButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                      ),
+                      color: Colors.lightBlueAccent,
+                      textColor: Colors.white,
+                      padding: EdgeInsets.only(
+                          left: 50.0, right: 50.0, bottom: 20.0, top: 20.0),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return AchiPage();
+                            },
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Achievement',
+                        style: TextStyle(fontSize: 20.0),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+            Container(
+              width: 185,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Align(
                     child: RaisedButton(
@@ -110,7 +145,7 @@ class _StatsPageState extends State<StatsPage> {
                       color: Colors.blueAccent,
                       textColor: Colors.white,
                       padding: EdgeInsets.only(
-                          left: 70.0, right: 70.0, bottom: 20.0, top: 20.0),
+                          left: 50.0, right: 50.0, bottom: 20.0, top: 20.0),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -121,7 +156,7 @@ class _StatsPageState extends State<StatsPage> {
                           ),
                         );
                       },
-                      child: const Text('Daily Steps',
+                      child: const Text('Daily Step',
                           style: TextStyle(fontSize: 20.0)),
                     ),
                   ),
@@ -208,10 +243,14 @@ class _StatsPageState extends State<StatsPage> {
     if ((count200 / (200 * (coin + 1))) >= 1) {
       coin += 1;
     }*/
-    coin = (value / 200).floor();
+    //coin = (value / 200).floor();
+    if ((todaySteps - updatelastcoin) >= 200) {
+      updatelastcoin = (todaySteps ~/ 200) * 200;
+      coin += 1;
+    }
     stepsBox.put(coinCountKey, coin);
-    print('todaySteps : $todaySteps | coin : $coin');
-    print('value : $value | savedStepsCount : $savedStepsCount');
+    print('stats | todaySteps : $todaySteps | coin : $coin');
+    //print('value : $value | savedStepsCount : $savedStepsCount');
 
     return todaySteps; // this is your daily steps value.
   }

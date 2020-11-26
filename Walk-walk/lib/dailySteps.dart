@@ -3,7 +3,7 @@ import 'package:daily_steps/game.dart';
 import 'package:daily_steps/stats.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:achievement_view/achievement_view.dart';
+//import 'package:achievement_view/achievement_view.dart';
 
 import 'package:jiffy/jiffy.dart';
 import 'package:pedometer/pedometer.dart';
@@ -17,15 +17,20 @@ class DailyStepsPage extends StatefulWidget {
 class DailyStepsPageState extends State<DailyStepsPage> {
   Pedometer _pedometer;
   StreamSubscription<int> _subscription;
-  Box<int> stepsBox = Hive.box('steps');
-  int todaySteps;
+  static Box<int> stepsBox = Hive.box('steps');
+  static int todaySteps = 0;
   int coinCountKey = 9999999;
+  int boughtKey = 987654321;
+  int updatelastcoin = 0;
   static int coin = 0;
+  // ignore: non_constant_identifier_names
+  static Box<int> bought_coin = Hive.box('steps');
 
   final Color carbonBlack = Color(0xff1a1a1a);
 
   @override
   void initState() {
+    print('bought ${bought_coin.get(boughtKey, defaultValue: 0)}');
     super.initState();
     startListening();
   }
@@ -50,7 +55,8 @@ class DailyStepsPageState extends State<DailyStepsPage> {
           children: <Widget>[
             Container(
               padding: EdgeInsets.only(left: 50.0, bottom: 5.0),
-              child: Text('$coin',
+              child: Text(
+                  '${coin - bought_coin.get(boughtKey, defaultValue: 0)}',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 24)),
               decoration: BoxDecoration(
@@ -60,6 +66,13 @@ class DailyStepsPageState extends State<DailyStepsPage> {
                 ),
               ),
             ),
+            /*Container(
+              padding: EdgeInsets.only(left: 50.0, right: 50.0, top: 50.0),
+              child: Text(
+                'Chitsanuphong',
+                style: TextStyle(color: Colors.white, fontSize: 24.0),
+              ),
+            ),*/
             Spacer(),
             Card(
               color: Colors.black87.withOpacity(0.7),
@@ -86,7 +99,7 @@ class DailyStepsPageState extends State<DailyStepsPage> {
                       ),
                     ),
                     Text(
-                      "Steps Today",
+                      "Daily Steps",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
@@ -118,7 +131,7 @@ class DailyStepsPageState extends State<DailyStepsPage> {
                       color: Colors.lightBlueAccent,
                       textColor: Colors.white,
                       padding: EdgeInsets.only(
-                          left: 70.0, right: 70.0, bottom: 20.0, top: 20.0),
+                          left: 60.0, right: 60.0, bottom: 20.0, top: 20.0),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -229,7 +242,7 @@ class DailyStepsPageState extends State<DailyStepsPage> {
 
     // When the day changes, reset the daily steps count
     // and Update the last day saved as the day changes.
-    print('lastdaySaved : $lastDaySaved | todayDayNo : $todayDayNo');
+    //print('lastdaySaved : $lastDaySaved | todayDayNo : $todayDayNo');
     MyGameState.countHeart.put(heartKey, 3);
 
     if (lastDaySaved < todayDayNo) {
@@ -251,8 +264,17 @@ class DailyStepsPageState extends State<DailyStepsPage> {
     if ((count200 / (200 * (coin + 1))) >= 1) {
       coin += 1;
     }*/
-    coin = (value / 200).floor();
+    //coin = (value / 200).floor();
+    if ((todaySteps - updatelastcoin) >= 200) {
+      updatelastcoin = (todaySteps ~/ 200) * 200;
+      coin += 1;
+    }
+    print('Daily coin : $coin');
     stepsBox.put(coinCountKey, coin);
+
+    //stepsBox.put(coinCountKey, 0);
+    //bought_coin.put(boughtKey, 0);
+
     //print('todaySteps : $todaySteps | coin : $coin');
     //print('value : $value | savedStepsCount : $savedStepsCount');
 

@@ -5,13 +5,91 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:sensors/sensors.dart';
 import 'package:flare_flutter/flare_actor.dart';
-import 'package:achievement_view/achievement_view.dart';
+//import 'package:achievement_view/achievement_view.dart';
 
 class MyGame extends StatefulWidget {
   MyGameState createState() => MyGameState();
 }
 
 class MyGameState extends State<MyGame> with TickerProviderStateMixin {
+  createPopups(BuildContext context, String x) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.grey,
+            title: Text(
+              x,
+              style: TextStyle(fontSize: 36, color: Colors.white),
+            ),
+            actions: <Widget>[
+              MaterialButton(
+                elevation: 5.0,
+                child: Text(
+                  'OK',
+                  style: TextStyle(fontSize: 24, color: Colors.white),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        });
+  }
+/*
+  liveFull(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.grey,
+            title: Text(
+              "  Live is Full",
+              style: TextStyle(fontSize: 36, color: Colors.white),
+            ),
+            actions: <Widget>[
+              MaterialButton(
+                elevation: 5.0,
+                child: Text(
+                  'OK',
+                  style: TextStyle(fontSize: 24, color: Colors.white),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  coinNotenough(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.grey,
+            title: Text(
+              "  Coins not Enough",
+              style: TextStyle(fontSize: 36, color: Colors.white),
+            ),
+            actions: <Widget>[
+              MaterialButton(
+                elevation: 5.0,
+                child: Text(
+                  'OK',
+                  style: TextStyle(fontSize: 24, color: Colors.white),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+        });
+  }*/
+
   Animation<double> bulletAnimation, targetAnimation;
   AnimationController bulletController, targetController;
   double bulletYPoint = 0,
@@ -24,7 +102,10 @@ class MyGameState extends State<MyGame> with TickerProviderStateMixin {
   Box<int> highScore = Hive.box('steps');
   int highScoreKey = 12345;
   int heartKey = 444444;
+  // ignore: non_constant_identifier_names
   int tmp_heart;
+  int coinCountKey = 9999999;
+  int boughtKey = 987654321;
   static Box<int> countHeart = Hive.box('steps');
 
   var rand = Random();
@@ -104,7 +185,6 @@ class MyGameState extends State<MyGame> with TickerProviderStateMixin {
       bulletXPoint = x;
     }
     if (endGame == 2) {
-      print('endGame : $endGame');
       tmp_heart = highScore.get(heartKey, defaultValue: 3);
       if (tmp_heart > 0) {
         tmp_heart -= 1;
@@ -127,20 +207,32 @@ class MyGameState extends State<MyGame> with TickerProviderStateMixin {
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
-            automaticallyImplyLeading: false,
             actions: <Widget>[
+              IconButton(
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return DailyStepsPage();
+                        },
+                      ),
+                    );
+                  }),
               Container(
                 padding: EdgeInsets.only(right: 10.0),
                 alignment: Alignment.centerLeft,
                 child: Image.asset("assets/dollar (1).png"),
               ),
               Container(
-                  padding: EdgeInsets.only(right: 200.0),
+                  padding: EdgeInsets.only(right: 150.0),
                   alignment: Alignment.centerLeft,
-                  child: Text('${DailyStepsPageState.coin}',
+                  child: Text(
+                      '${DailyStepsPageState.coin - DailyStepsPageState.bought_coin.get(boughtKey, defaultValue: 0)}',
                       style: TextStyle(color: Colors.white, fontSize: 24))),
               Container(
-                padding: EdgeInsets.only(right: 5.0),
+                padding: EdgeInsets.only(right: 5.0, left: 45.0),
                 alignment: Alignment.centerLeft,
                 child: Image.asset("assets/heart.png"),
               ),
@@ -156,7 +248,33 @@ class MyGameState extends State<MyGame> with TickerProviderStateMixin {
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          return DailyStepsPage();
+                          endGame = 0;
+
+                          int tmp = DailyStepsPageState.stepsBox
+                              .get(coinCountKey, defaultValue: 0);
+                          int cntHeart =
+                              countHeart.get(heartKey, defaultValue: 3);
+                          int bought = DailyStepsPageState.bought_coin
+                              .get(boughtKey, defaultValue: 0);
+                          if (DailyStepsPageState.stepsBox
+                                  .get(999, defaultValue: 0) ==
+                              0) {
+                            DailyStepsPageState.bought_coin.put(boughtKey, 0);
+                          }
+                          if (cntHeart < 3) {
+                            if ((tmp - bought) < 5) {
+                              //return createPopups(context, "  Coins not Enough");
+                              print('coin not enough');
+                            } else {
+                              countHeart.put(heartKey, cntHeart + 1);
+                              DailyStepsPageState.bought_coin
+                                  .put(boughtKey, bought + 5);
+                            }
+                          } else {
+                            //return createPopups(context, "  Live is Full");
+                            print('live is full');
+                          }
+                          return MyGame();
                         },
                       ),
                     );
@@ -199,7 +317,7 @@ class MyGameState extends State<MyGame> with TickerProviderStateMixin {
                             count = 1;
                             initialize();
                           } else {
-                            print('Need More Heart');
+                            createPopups(context, "  Need More Live");
                           }
                         },
                         child: Container(
